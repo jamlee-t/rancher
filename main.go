@@ -218,8 +218,11 @@ func run(cli *cli.Context, cfg app.Config) error {
 	logrus.Infof("Rancher version %s is starting", version.FriendlyVersion())
 	logrus.Infof("Rancher arguments %+v", cfg)
 	dump.GoroutineDumpOn(syscall.SIGUSR1, syscall.SIGILL)
+
+	// NOTE(JamLee): 信号处理器中可以取消的 ctx
 	ctx := signals.SetupSignalHandler(context.Background())
 
+	// NOTE(JamLee): 创建本地的 etcd 目录
 	migrateETCDlocal()
 
 	embedded, clientConfig, err := k8s.GetConfig(ctx, cfg.K8sMode, kubeConfig)
