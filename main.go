@@ -29,8 +29,12 @@ var (
 )
 
 func main() {
+	// NOTE(JamLee): 注册重置密码的 bin 文件， 确认默认的 admin 用户
 	app.RegisterPasswordResetCommand()
 	app.RegisterEnsureDefaultAdminCommand()
+
+	// NOTE(JamLee): 调用的是 reexec.init()，其作用是实现类似busybox的程序调用，即根据文件名 决定程序的功能。这里暂且不表，
+	//  有兴趣的同学可以自行研究reexec package的源码，代码位于$SRC/reexec目录下。
 	if reexec.Init() {
 		return
 	}
