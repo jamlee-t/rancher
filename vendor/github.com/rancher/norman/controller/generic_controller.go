@@ -275,7 +275,7 @@ func (g *genericController) queueObject(obj interface{}) {
 		g.queue.Add(key)
 	}
 }
-
+// NOTE(JamLee): 手底下所有的 controller启动都是它
 func (g *genericController) run(ctx context.Context, threadiness int) {
 	defer utilruntime.HandleCrash()
 	defer g.queue.ShutDown()

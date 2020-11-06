@@ -25,6 +25,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// NOTE(JamLee): steve server 是 k8s Kubernetes API Translator
 type Server struct {
 	*Controllers
 
@@ -42,6 +43,7 @@ type Server struct {
 	DashboardURL    func() string
 }
 
+// NOTE(JamLee): 我猜测这里的 controller 是指 rest 接口 api。server 嵌入了这个类
 type Controllers struct {
 	RestConfig *rest.Config
 	K8s        kubernetes.Interface
@@ -67,6 +69,7 @@ func RestConfigDefaults(cfg *rest.Config) *rest.Config {
 func NewController(cfg *rest.Config) (*Controllers, error) {
 	c := &Controllers{}
 
+	// NOTE(JamLee): core 是指 Factory
 	core, err := core.NewFactoryFromConfig(cfg)
 	if err != nil {
 		return nil, err

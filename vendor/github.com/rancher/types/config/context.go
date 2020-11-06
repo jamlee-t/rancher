@@ -47,6 +47,7 @@ var (
 	ManagementStorageContext types.StorageContext = "mgmt"
 )
 
+// QUESTION(JamLee): Management, Project,  RBAC, Core, Storage, RunContext, managementContext 这些对象什么用途。
 type ScaledContext struct {
 	ClientGetter      proxy.ClientGetter
 	KubeConfig        clientcmdapi.Config
@@ -54,19 +55,26 @@ type ScaledContext struct {
 	UnversionedClient rest.Interface
 	K8sClient         kubernetes.Interface
 	APIExtClient      clientset.Interface
+
+	// NOTE(JamLee): rancher 内部自己定义的 schemas
 	Schemas           *types.Schemas
+
 	AccessControl     types.AccessControl
 	Dialer            dialer.Factory
 	UserManager       user.Manager
 	PeerManager       peermanager.PeerManager
 
+	// NOTE(JamLee): 所有的自定义的资源和k8s的内置资源的 Starter
 	Management managementv3.Interface
 	Project    projectv3.Interface
 	RBAC       rbacv1.Interface
 	Core       corev1.Interface
 	Storage    storagev1.Interface
 
+	// NOTE(JamLee): 号令整个程序的生命周期
 	RunContext        context.Context
+
+	// NOTE(JamLee): 统一的 api 调用入口
 	managementContext *ManagementContext
 }
 
@@ -93,6 +101,7 @@ func (c *ScaledContext) NewManagementContext() (*ManagementContext, error) {
 	return mgmt, nil
 }
 
+// NOTE(JamLee): New阶段，Rancher 启动时会创建一个核心的 ScaledContext
 func NewScaledContext(config rest.Config) (*ScaledContext, error) {
 	var err error
 
@@ -143,6 +152,7 @@ func NewScaledContext(config rest.Config) (*ScaledContext, error) {
 		return nil, err
 	}
 
+	// NOTE(JamLee): 这个 schemas 和 k8s 的 schemas 不是同一个类型
 	context.Schemas = types.NewSchemas().
 		AddSchemas(managementSchema.Schemas).
 		AddSchemas(clusterSchema.Schemas).

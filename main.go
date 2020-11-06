@@ -168,6 +168,7 @@ func main() {
 		},
 	}
 
+	// NOTE(JamLee): rancher命令行不论带上什么参数，这里都是入口
 	app.Action = func(c *cli.Context) error {
 		// enable profiler
 		if profileAddress != "" {
@@ -175,6 +176,7 @@ func main() {
 				log.Println(http.ListenAndServe(profileAddress, nil))
 			}()
 		}
+		// NOTE(JamLee):初始化日志对象, 选择 json, text 等对象格式
 		initLogs(c, config)
 		return run(c, config)
 	}
@@ -218,23 +220,30 @@ func migrateETCDlocal() {
 	os.Symlink("../etcd", "management-state/etcd")
 }
 
+// NOTE(JamLee): 程序入口
 func run(cli *cli.Context, cfg app.Config) error {
 	logrus.Infof("Rancher version %s is starting", version.FriendlyVersion())
 	logrus.Infof("Rancher arguments %+v", cfg)
+
+	// NOTE(JamLee): 输出 gorouetine
+	//  https://github.com/maruel/panicparse/
+	//  例如: kill -SIGUSR1 34068
 	dump.GoroutineDumpOn(syscall.SIGUSR1, syscall.SIGILL)
 
 	// NOTE(JamLee): 信号处理器中可以取消的 ctx
 	ctx := signals.SetupSignalHandler(context.Background())
 
-	// NOTE(JamLee): 创建本地的 etcd 目录
+	// NOTE(JamLee): 创建本地 Rancher 缓存数据
 	migrateETCDlocal()
 
+	// NOTE(JamLee): 在 mac 上执行，不是 embedded 的
 	embedded, clientConfig, err := k8s.GetConfig(ctx, cfg.K8sMode, kubeConfig)
 	if err != nil {
 		return err
 	}
 	cfg.Embedded = embedded
 
+	// NOTE(JamLee): 首先启动全局的 app 对象
 	os.Unsetenv("KUBECONFIG")
 	server, err := app.New(ctx, clientConfig, &cfg)
 	if err != nil {

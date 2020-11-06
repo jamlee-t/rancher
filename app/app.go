@@ -57,6 +57,7 @@ type Config struct {
 	Features          string
 }
 
+// NOTE(JamLee): 核心 app 对象  Rancher
 type Rancher struct {
 	Config          Config
 	AccessSetLookup accesscontrol.AccessSetLookup
@@ -67,6 +68,7 @@ type Rancher struct {
 	ClusterManager  *clustermanager.Manager
 }
 
+// NOTE(JamLee): Rancher 的启动分为 New 和 Listen 两个阶段。Listen 阶段是用于启动端口监听, Controller start。
 func (r *Rancher) ListenAndServe(ctx context.Context) error {
 	if err := r.Start(ctx); err != nil {
 		return err
@@ -85,7 +87,9 @@ func (r *Rancher) ListenAndServe(ctx context.Context) error {
 	return ctx.Err()
 }
 
+// NOTE(JamLee): New 阶段，安装 crd 到 k8s， 启动 scaledContext
 func initFeatures(ctx context.Context, scaledContext *config.ScaledContext, cfg *Config) error {
+	// NOTE(JamLee): wrangle 库中 factory 主要就是一个 clientset（k8s）。但是它有很多方法：比如批量创建 crd
 	factory, err := crd.NewFactoryFromClient(&scaledContext.RESTConfig)
 	if err != nil {
 		return err
@@ -103,6 +107,7 @@ func initFeatures(ctx context.Context, scaledContext *config.ScaledContext, cfg 
 	return nil
 }
 
+// NOTE(JamLee): New阶段，这里其实不止 scaleConext, 还有  wrangler context
 func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig, cfg *Config) (*config.ScaledContext, *clustermanager.Manager, *wrangler.Context, error) {
 	restConfig, err := clientConfig.ClientConfig()
 	if err != nil {
@@ -115,16 +120,19 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 		return nil, nil, nil, err
 	}
 
+	// NOTE(JamLee): 等待 k8s 启动完毕
 	if err := k8scheck.Wait(ctx, *restConfig); err != nil {
 		return nil, nil, nil, err
 	}
 
+	// NOTE(JamLee): config 是 types 中的包。与 app.Config 和 kubeConfig 无关。是一级 controller们的总代。
 	scaledContext, err := config.NewScaledContext(*restConfig)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	scaledContext.KubeConfig = kubeConfig
 
+	// NOTE(JamLee): 初始化自定义资源feature到etcd里。feature 连 schema 都没有, 用途是什么呢？
 	if err := initFeatures(ctx, scaledContext, cfg); err != nil {
 		return nil, nil, nil, err
 	}
@@ -145,6 +153,8 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 		tunnelServer = df.TunnelServer
 	}
 
+	// NOTE(JamLee): wrangler 功能有下: 1. 生成controller模板的代码。2.
+	//  steve 是 k8s api 翻译
 	wranglerContext, err := wrangler.NewContext(ctx, steveserver.RestConfigDefaults(&scaledContext.RESTConfig), tunnelServer)
 	if err != nil {
 		return nil, nil, nil, err
@@ -165,7 +175,10 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 	return scaledContext, manager, wranglerContext, nil
 }
 
+// NOTE(JamLee): Rancher 的启动分为 New 和 Listen 两个阶段。New 阶段是用于组织对象，但是不启动。
 func New(ctx context.Context, clientConfig clientcmd.ClientConfig, cfg *Config) (*Rancher, error) {
+	// QUESTION(JamLee): 什么是 ScaledContext 的概念 ？高可用时每个 managment 拥有一个 scaledContext
+	//  什么是 wranglerContext 的概念？
 	scaledContext, clusterManager, wranglerContext, err := buildScaledContext(ctx, clientConfig, cfg)
 	if err != nil {
 		return nil, err

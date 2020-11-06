@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// QUESTION(JamLee): wrangler 本身的用意是用于生成controller模板代码的，应该是个工具类，wrangler 也负责管理 controller 吗？
 type Context struct {
 	*server.Controllers
 
