@@ -32,6 +32,7 @@ import (
 	"github.com/rancher/types/config"
 )
 
+// NOTE(JamLee): 批量添加 proxy
 func Setup(ctx context.Context, mgmt *config.ScaledContext, clusterManager *clustermanager.Manager, k8sProxy http.Handler) error {
 	// Here we setup all types that will be stored in the User cluster
 

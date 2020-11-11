@@ -25,6 +25,7 @@ import (
 	"github.com/rancher/types/config"
 )
 
+// NOTE(JamLee): 这里代表的是 managementapi
 func New(ctx context.Context, scaledContext *config.ScaledContext, clusterManager *clustermanager.Manager,
 	k8sProxy http.Handler, localClusterEnabled bool) (http.Handler, error) {
 	subscribe.Register(&builtin.Version, scaledContext.Schemas)
@@ -32,6 +33,7 @@ func New(ctx context.Context, scaledContext *config.ScaledContext, clusterManage
 	subscribe.Register(&clusterSchema.Version, scaledContext.Schemas)
 	subscribe.Register(&projectSchema.Version, scaledContext.Schemas)
 
+	// NOTE(JamLee): 创建 apiserver 时会同步创建 crd。
 	if err := managementstored.Setup(ctx, scaledContext, clusterManager, k8sProxy, localClusterEnabled); err != nil {
 		return nil, err
 	}
@@ -46,6 +48,7 @@ func New(ctx context.Context, scaledContext *config.ScaledContext, clusterManage
 	}
 	server.AccessControl = scaledContext.AccessControl
 
+	// NOTE(JamLee): api 包里面的 controller ， 对 scaleContext 里的内容进行添加
 	catalog.Register(ctx, scaledContext)
 	dynamicschema.Register(ctx, scaledContext, server.Schemas)
 	feature.Register(ctx, scaledContext)

@@ -32,6 +32,7 @@ import (
 	"github.com/rancher/types/config"
 )
 
+// NOTE(JamLee): controller 注册的含义是给 controller 留下的接口插入方法。
 func Register(ctx context.Context, management *config.ManagementContext, manager *clustermanager.Manager) {
 	// auth handlers need to run early to create namespaces that back clusters and projects
 	// also, these handlers are purely in the mgmt plane, so they are lightweight compared to those that interact with machines and clusters

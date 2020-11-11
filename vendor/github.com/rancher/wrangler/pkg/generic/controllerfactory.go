@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+// NOTE(JamLee): wrangle-api 那用的是 ControllerManager， 和 Norman 无关的。这个 Controller 也是添加 Handler
 type ControllerManager struct {
 	lock        sync.Mutex
 	generation  int

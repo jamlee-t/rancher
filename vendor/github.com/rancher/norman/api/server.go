@@ -48,6 +48,7 @@ type Defaults struct {
 	ErrorHandler  types.ErrorHandler
 }
 
+// NOTE(JamLee): 在 http route 之后的真正的 api server
 func NewAPIServer() *Server {
 	s := &Server{
 		Schemas: types.NewSchemas(),

@@ -132,7 +132,7 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 	}
 	scaledContext.KubeConfig = kubeConfig
 
-	// NOTE(JamLee): 初始化自定义资源feature到etcd里。feature 连 schema 都没有, 用途是什么呢？
+	// NOTE(JamLee): 初始化自定义资源feature到 etcd 里。feature 连 schema 都没有, 用途是什么呢？
 	if err := initFeatures(ctx, scaledContext, cfg); err != nil {
 		return nil, nil, nil, err
 	}
@@ -142,6 +142,7 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 		return nil, nil, nil, err
 	}
 
+	// NOTE(JamLee): PeerManager 与 rancher 的高可用集群有关系
 	scaledContext.Dialer = dialerFactory
 	scaledContext.PeerManager, err = tunnelserver.NewPeerManager(ctx, scaledContext, dialerFactory.TunnelServer)
 	if err != nil {
@@ -153,8 +154,12 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 		tunnelServer = df.TunnelServer
 	}
 
-	// NOTE(JamLee): wrangler 功能有下: 1. 生成controller模板的代码。2.
-	//  steve 是 k8s api 翻译
+	// NOTE(JamLee):
+	//  wrangler 功能有下:
+	//  1. apply，mgmt，asl， steveControllers 的组合
+	//  \
+	//  steve：是 k8s api 翻译
+	//  这里 wranglerContext 是 k8s api 扩展的内容。
 	wranglerContext, err := wrangler.NewContext(ctx, steveserver.RestConfigDefaults(&scaledContext.RESTConfig), tunnelServer)
 	if err != nil {
 		return nil, nil, nil, err
@@ -166,8 +171,9 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 	}
 
 	scaledContext.UserManager = userManager
-	scaledContext.RunContext = ctx
+	scaledContext.RunContext = ctx // NOTE(JamLee): 停止的命令
 
+	// NOTE(JamLee): 多集群管理工具
 	manager := clustermanager.NewManager(cfg.HTTPSListenPort, scaledContext, wranglerContext.RBAC, wranglerContext.ASL)
 	scaledContext.AccessControl = manager
 	scaledContext.ClientGetter = manager

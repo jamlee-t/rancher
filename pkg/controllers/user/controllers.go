@@ -45,6 +45,7 @@ import (
 	"github.com/rancher/types/factory"
 )
 
+// NOTE(JamLee): controller 注册的含义是给 controller 留下的接口插入方法。
 func Register(ctx context.Context, cluster *config.UserContext, clusterRec *managementv3.Cluster, kubeConfigGetter common.KubeConfigGetter) error {
 	rbac.Register(ctx, cluster)
 	healthsyncer.Register(ctx, cluster)

@@ -155,6 +155,7 @@ func (g *genericController) AddHandler(ctx context.Context, name string, handler
 	}()
 }
 
+// QUESTION(JamLee): 到底 genericController 用这些 handler 干什么呢？
 func (g *genericController) addHandler(ctx context.Context, name string, handler HandlerFunc) {
 	g.Lock()
 	defer g.Unlock()
@@ -288,11 +289,13 @@ func (g *genericController) run(ctx context.Context, threadiness int) {
 	logrus.Infof("Shutting down %s controller", g.name)
 }
 
+// NOTE(JamLee): 调用了 handler
 func (g *genericController) runWorker() {
 	for g.processNextWorkItem() {
 	}
 }
 
+// NOTE(JamLee): 这里用了 handler
 func (g *genericController) processNextWorkItem() bool {
 	key, quit := g.queue.Get()
 	if quit {
@@ -359,6 +362,7 @@ func filterConflictsError(err error) error {
 	return err
 }
 
+// NOTE(JamLee): 调用 syncHandler 时，调用所有加入的 handler
 func (g *genericController) syncHandler(key interface{}) (err error) {
 	defer utilruntime.RecoverFromPanic(&err)
 

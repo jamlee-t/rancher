@@ -109,6 +109,7 @@ func NewScaledContext(config rest.Config) (*ScaledContext, error) {
 		RESTConfig: config,
 	}
 
+	// NOTE(JamLee): 这么 Management 是可以被启动的 controller 合集，例如: NodeController。
 	context.Management, err = managementv3.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -161,6 +162,7 @@ func NewScaledContext(config rest.Config) (*ScaledContext, error) {
 	return context, err
 }
 
+// NOTE(JamLee): 递归启动 controller 的启动器。
 func (c *ScaledContext) Start(ctx context.Context) error {
 	logrus.Info("Starting API controllers")
 	return controller.SyncThenStart(ctx, 5, c.controllers()...)

@@ -24,7 +24,7 @@ const (
 var crdVersions = []*types.APIVersion{
 	&managementSchema.Version,
 }
-
+// NOTE(JamLee): api 的底层是 norman
 func NewAPIHandler(ctx context.Context, apiContext *config.ScaledContext) (http.Handler, error) {
 	api := &tokenAPI{
 		mgr: NewManager(ctx, apiContext),

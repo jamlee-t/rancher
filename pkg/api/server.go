@@ -6,6 +6,7 @@ import (
 	"github.com/rancher/rancher/pkg/settings"
 )
 
+// NOTE(JamLee): 创建 norman api 的server。被引用为 rancherapi
 func NewServer(schemas *types.Schemas) (*normanapi.Server, error) {
 	server := normanapi.NewAPIServer()
 	if err := server.AddSchemas(schemas); err != nil {

@@ -75,6 +75,7 @@ import (
 	"github.com/rancher/types/config"
 )
 
+// NOTE(JamLee): 批量创建 crd
 func Setup(ctx context.Context, apiContext *config.ScaledContext, clusterManager *clustermanager.Manager,
 	k8sProxy http.Handler, localClusterEnabled bool) error {
 	// Here we setup all types that will be stored in the Management cluster

@@ -42,6 +42,7 @@ type Controller struct {
 	clusterName               string
 }
 
+// // NOTE(JamLee): 一个 controller 中管理了几种资源类型的定义
 func Register(ctx context.Context, cluster *config.UserContext) {
 	clusterSecretsClient := cluster.Core.Secrets("")
 	s := &Controller{

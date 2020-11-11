@@ -35,6 +35,7 @@ func (w *Context) Start(ctx context.Context) error {
 }
 
 func NewContext(ctx context.Context, restConfig *rest.Config, tunnelServer *remotedialer.Server) (*Context, error) {
+	// NOTE(JamLee): 含有 wrangler-api 的 apiextensions 和 apiregistration 的 controller。主要是 k8s 扩展api的功能
 	steveControllers, err := server.NewController(restConfig)
 	if err != nil {
 		return nil, err

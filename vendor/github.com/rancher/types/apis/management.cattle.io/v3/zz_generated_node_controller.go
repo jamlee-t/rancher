@@ -147,6 +147,7 @@ func (c *nodeController) Lister() NodeLister {
 }
 
 func (c *nodeController) AddHandler(ctx context.Context, name string, handler NodeHandlerFunc) {
+	// NOTE(JamLee): 创建了一个 handler 的包裹函数
 	c.GenericController.AddHandler(ctx, name, func(key string, obj interface{}) (interface{}, error) {
 		if obj == nil {
 			return handler(key, nil)
@@ -209,6 +210,7 @@ func (c nodeFactory) List() runtime.Object {
 	return &NodeList{}
 }
 
+// NOTE(JamLee): 从 client 中创建  controller
 func (s *nodeClient) Controller() NodeController {
 	s.client.Lock()
 	defer s.client.Unlock()
@@ -218,6 +220,7 @@ func (s *nodeClient) Controller() NodeController {
 		return c
 	}
 
+	// NOTE(JamLee): 从 client 中创建  controller，里面是一个 informer
 	genericController := controller.NewGenericController(NodeGroupVersionKind.Kind+"Controller",
 		s.objectClient)
 

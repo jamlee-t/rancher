@@ -2,6 +2,8 @@
 - 当前local集群要执行的内容，例如创建 cluster，user， 修改全局 settings 这种。
 - 受管集群要做的操作例如下发 role 信息，添加节点，部署workload 这种。
 
+wrangler context 是用于k8s api 扩展的内容。启动 rancher 时会启动大量资源的 informer。然后在 informer 里添加 handler。
+
 ## k8s 模板代码生成
 https://github.com/kubernetes/code-generator
 https://github.com/kubernetes/gengo
@@ -109,8 +111,8 @@ status:
   - v3
 ```
 
-## 一级 controller
-只有 controller 的外皮有 queue， 但是没有 handler 定义。types 库里面同时有 k8s 的 api controller 和 cattle 的 api rest client。还有个 compose 里面似乎是一个获取所有的 client 的索引。这些定义在 norman 包
+## norman
+一级 controller， 只有 controller 的外皮有 queue， 但是没有 handler 定义。types 库里面同时有 k8s 的 api controller 和 cattle 的 api rest client。还有个 compose 里面似乎是一个获取所有的 client 的索引。这些定义在 norman 包
 ```go
 baseCattle  = "client"
 baseK8s     = "apis"
@@ -135,6 +137,14 @@ type SettingController interface {
 此外，所有的 rancher 自定义对象定义在 type/api 中，例如：apis/management.cattle.io/v3/zz_generated_setting_controller.go:66
 
 ## wrangler
-- 二级 controller，相当于 handler。
+- 二级 controller，也就是 handler。
 - 生成 crd yaml 文件。
 - schemas 结构定义， scheme 注册到一次。
+
+代码中提到`Handler is the controller implementation for Foo resources`. 一个 handler 里包含多个（controller）的实现代码。
+
+## types
+rancher 中所有自定义资源的定义。依赖 wrangler， norman。
+
+## steve
+mux 下对应的 handler。
