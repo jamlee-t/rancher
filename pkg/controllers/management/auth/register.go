@@ -20,6 +20,7 @@ func RegisterEarly(ctx context.Context, management *config.ManagementContext, cl
 	grbLegacy := newLegacyGRBCleaner(management)
 	rtLegacy := newLegacyRTCleaner(management)
 
+	// NOTE(JamLee): AddLifecycle 是对 handler 的一种封装，底层还是用的 controller
 	management.Management.ClusterRoleTemplateBindings("").AddLifecycle(ctx, ctrbMGMTController, crtb)
 	management.Management.ProjectRoleTemplateBindings("").AddLifecycle(ctx, ptrbMGMTController, prtb)
 	management.Management.GlobalRoles("").AddLifecycle(ctx, grController, gr)

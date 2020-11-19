@@ -79,6 +79,7 @@ import (
 func Setup(ctx context.Context, apiContext *config.ScaledContext, clusterManager *clustermanager.Manager,
 	k8sProxy http.Handler, localClusterEnabled bool) error {
 	// Here we setup all types that will be stored in the Management cluster
+	// NOTE(JamLee): ScaleContext 也是 apiContext
 	schemas := apiContext.Schemas
 
 	factory := &crd.Factory{ClientGetter: apiContext.ClientGetter}

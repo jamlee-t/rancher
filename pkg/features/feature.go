@@ -27,6 +27,7 @@ var (
 		"Exposes a UI that enables users to create, read, update and delete virtual services and destination rules, which are traffic management features of Istio.",
 		true,
 		true)
+	// NOTE(JamLee): 原来 steve 是新的 dashboard 功能
 	Steve = newFeature(
 		"dashboard",
 		"Deploy experimental new UI for managing resources inside of clusters.",

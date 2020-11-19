@@ -36,12 +36,13 @@ import (
 )
 
 func Start(ctx context.Context, localClusterEnabled bool, scaledContext *config.ScaledContext, clusterManager *clustermanager.Manager, auditLogWriter *audit.LogWriter, authz auth.Middleware) (auth.Middleware, http.Handler, error) {
-	// NOTE(JamLee): norman api server 的创建，其实是一个 handler
+	// NOTE(JamLee): norman api server 的创建，其实是一个 http.Handler, 乖乖的叫 handler 不好吗
 	tokenAPI, err := tokens.NewAPIHandler(ctx, scaledContext)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	// NOTE(JamLee): 乖乖的叫 http.Handler 不好吗
 	publicAPI, err := publicapi.NewHandler(ctx, scaledContext)
 	if err != nil {
 		return nil, nil, err
@@ -49,7 +50,7 @@ func Start(ctx context.Context, localClusterEnabled bool, scaledContext *config.
 
 	k8sProxy := k8sProxyPkg.New(scaledContext, scaledContext.Dialer)
 
-	// NOTE(JamLee): pkg/api 包里的server启动
+	// NOTE(JamLee): pkg/api/server 包里的server启动。也就是 norman server了
 	managementAPI, err := managementapi.New(ctx, scaledContext, clusterManager, k8sProxy, localClusterEnabled)
 	if err != nil {
 		return nil, nil, err

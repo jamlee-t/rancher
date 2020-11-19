@@ -17,6 +17,7 @@ var (
 	ScopedFinalizerKey = "clusterscoped.controller.cattle.io/"
 )
 
+// NOTE(JamLee): 在 Handler 上一层封装，很奇怪发起请求时会运行这里的 封装过的 handler。而且能够阻塞请求。
 type ObjectLifecycle interface {
 	Create(obj runtime.Object) (runtime.Object, error)
 	Finalize(obj runtime.Object) (runtime.Object, error)

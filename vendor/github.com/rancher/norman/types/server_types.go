@@ -100,6 +100,7 @@ type AccessControl interface {
 	FilterList(apiContext *APIContext, schema *Schema, obj []map[string]interface{}, context map[string]string) []map[string]interface{}
 }
 
+// NOTE(JamLee): 从 request 中读取，然后变为 apiContext
 type APIContext struct {
 	Action                      string
 	ID                          string

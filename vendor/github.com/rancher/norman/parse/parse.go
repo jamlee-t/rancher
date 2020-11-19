@@ -162,6 +162,7 @@ func versionsForPath(schemas *types.Schemas, path string) []types.APIVersion {
 	return matchedVersion
 }
 
+// NOTE(JamLee): 解析Url中 SubContext 是最后一个参数
 func parseVersionAndSubContext(schemas *types.Schemas, escapedPath string) (*types.APIVersion, *types.APIVersion, string, []string, map[string]string) {
 	versions := versionsForPath(schemas, escapedPath)
 	if len(versions) == 0 {
@@ -174,7 +175,7 @@ func parseVersionAndSubContext(schemas *types.Schemas, escapedPath string) (*typ
 	}
 
 	versionParts := strings.Split(version.Path, "/")
-	pp := strings.Split(escapedPath, "/")
+	pp := strings.Split(escapedPath, "/") // NOTE(JamLee): pp 是 path 中参数的解析
 	var pathParts []string
 	for _, p := range pp {
 		part, err := url.PathUnescape(p)
@@ -207,7 +208,7 @@ func parseVersionAndSubContext(schemas *types.Schemas, escapedPath string) (*typ
 	}
 
 	// Length is always >= 3
-
+	// NOTE(JamLee): 被当做 SubContext
 	attrs := map[string]string{
 		version.SubContextSchema: paths[0],
 	}

@@ -43,7 +43,7 @@ type Server struct {
 	DashboardURL    func() string
 }
 
-// NOTE(JamLee): 我猜测这里的 controller 是指 rest 接口 api。server 嵌入了这个类
+// NOTE(JamLee): 我测这里的 controller 是指 rest 接口 api。server 嵌入了这个类。
 type Controllers struct {
 	RestConfig *rest.Config
 	K8s        kubernetes.Interface
@@ -54,6 +54,7 @@ type Controllers struct {
 	starters   []start.Starter
 }
 
+//  NOTE(JamLee): steve 里的 controller  start 也是 wrangle 流派的 controller。
 func (c *Controllers) Start(ctx context.Context) error {
 	return start.All(ctx, 5, c.starters...)
 }

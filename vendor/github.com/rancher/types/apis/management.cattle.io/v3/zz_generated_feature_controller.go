@@ -208,6 +208,7 @@ func (c featureFactory) List() runtime.Object {
 	return &FeatureList{}
 }
 
+// NOTE(JamLee): 调用一下，相当于注册controller。
 func (s *featureClient) Controller() FeatureController {
 	s.client.Lock()
 	defer s.client.Unlock()
@@ -224,7 +225,9 @@ func (s *featureClient) Controller() FeatureController {
 		GenericController: genericController,
 	}
 
+	// NOTE(JamLee): s.ns 应该是 '' ，这样也是可以的吗？断点测试过是可以的
 	s.client.featureControllers[s.ns] = c
+	// NOTE(JamLee): 此外 c 也是要启动的
 	s.client.starters = append(s.client.starters, c)
 
 	return c

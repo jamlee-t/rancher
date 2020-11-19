@@ -42,13 +42,14 @@ func New(ctx context.Context, scaledContext *config.ScaledContext, clusterManage
 		return nil, err
 	}
 
+	// NOTE(JamLee): rancherapi 是入参为 schema 的 server (本身是一个 http.Handle)
 	server, err := rancherapi.NewServer(scaledContext.Schemas)
 	if err != nil {
 		return nil, err
 	}
 	server.AccessControl = scaledContext.AccessControl
 
-	// NOTE(JamLee): api 包里面的 controller ， 对 scaleContext 里的内容进行添加
+	// NOTE(JamLee): api 包里面的 handler（api/controller） ， 把 handler 添加进 scaleContext 的 controller
 	catalog.Register(ctx, scaledContext)
 	dynamicschema.Register(ctx, scaledContext, server.Schemas)
 	feature.Register(ctx, scaledContext)
@@ -56,6 +57,8 @@ func New(ctx context.Context, scaledContext *config.ScaledContext, clusterManage
 	whitelistproxyKontainerDriver.Register(ctx, scaledContext)
 	samlconfig.Register(ctx, scaledContext)
 	k3smetadata.Register(ctx, scaledContext)
+
+	// NOTE(JamLee): pkg/api/controller/usercontrollers 包里面的 handler（api/controller） ， 把 handler 添加进 scaleContext 的 controller
 	usercontrollers.Register(ctx, scaledContext, clusterManager)
 	err = settings.Register(scaledContext)
 

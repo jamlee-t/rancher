@@ -1,0 +1,52 @@
+apiVersion: management.cattle.io/v3
+description: ""
+displayName: System account for Cluster local
+kind: User
+metadata:
+  annotations:
+    authz.management.cattle.io/creator-role-bindings: '{"created":["user"],"required":["user"]}'
+    lifecycle.cattle.io/create.mgmt-auth-users-controller: "true"
+  creationTimestamp: "2020-11-12T07:57:54Z"
+  finalizers:
+  - controller.cattle.io/mgmt-auth-users-controller
+  generation: 3
+  labels:
+    EDSN6T35DKT2UBRCDTHM2R0: hashed-principal-name
+    cattle.io/creator: norman
+  managedFields:
+  - apiVersion: management.cattle.io/v3
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:description: {}
+      f:displayName: {}
+      f:metadata:
+        f:annotations:
+          .: {}
+          f:authz.management.cattle.io/creator-role-bindings: {}
+          f:lifecycle.cattle.io/create.mgmt-auth-users-controller: {}
+        f:finalizers: {}
+        f:labels:
+          .: {}
+          f:EDSN6T35DKT2UBRCDTHM2R0: {}
+          f:cattle.io/creator: {}
+      f:principalIds: {}
+      f:spec: {}
+      f:status:
+        .: {}
+        f:conditions: {}
+    manager: Go-http-client
+    operation: Update
+    time: "2020-11-12T07:57:54Z"
+  name: u-xxx
+  resourceVersion: "16056"
+  selfLink: /apis/management.cattle.io/v3/users/u-b4qkhsnliz
+  uid: ffb0d7dc-597b-489a-aed7-b9fb419c3896
+principalIds:
+- system://local
+- local://u-xxx
+spec: {}
+status:
+  conditions:
+  - lastUpdateTime: "2020-11-12T15:57:55+08:00"
+    status: "True"
+    type: InitialRolesPopulated

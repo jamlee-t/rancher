@@ -20,6 +20,7 @@ package management
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
 	"time"
 
 	clientset "github.com/rancher/rancher/pkg/wrangler/generated/clientset/versioned"
@@ -103,6 +104,8 @@ func (c *Factory) Start(ctx context.Context, defaultThreadiness int) error {
 		return err
 	}
 
+	// NOTE(JamLee): Added
+	logrus.Traceln("====> Try to start wrangle management factory")
 	return c.controllerManager.Start(ctx, defaultThreadiness, c.threadiness)
 }
 

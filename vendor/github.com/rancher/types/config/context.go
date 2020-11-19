@@ -388,6 +388,7 @@ func NewUserContext(scaledContext *ScaledContext, config rest.Config, clusterNam
 		runContext:  scaledContext.RunContext,
 	}
 
+	// NOTE(JamLee): Management 的创建
 	context.Management, err = scaledContext.NewManagementContext()
 	if err != nil {
 		return nil, err

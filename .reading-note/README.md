@@ -2,7 +2,31 @@
 - 当前local集群要执行的内容，例如创建 cluster，user， 修改全局 settings 这种。
 - 受管集群要做的操作例如下发 role 信息，添加节点，部署workload 这种。
 
-wrangler context 是用于k8s api 扩展的内容。启动 rancher 时会启动大量资源的 informer。然后在 informer 里添加 handler。
+## 启动流程
+启动流程分为两个阶段：app.New 和 rancher.ListenAndServe 阶段
+
+### app.New 阶段
+组织所有的 controller 到对应的几个context 中: scaledContext, clusterManager, wranglerContext。clusterManager 是用于管理 rancher 中多 cluster 的，例如创建新cluster。
+server/server.go:38 Start 方法
+在 new rancher 的时候，启动了server。里面是所有的api的挂载方法。
+```go
+func New(ctx context.Context, clientConfig clientcmd.ClientConfig, cfg *Config) (*Rancher, error) {
+	scaledContext, clusterManager, wranglerContext, err := buildScaledContext(ctx, clientConfig, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	auditLogWriter := audit.NewLogWriter(cfg.AuditLogPath, cfg.AuditLevel, cfg.AuditLogMaxage, cfg.AuditLogMaxbackup, cfg.AuditLogMaxsize)
+
+	authMiddleware, handler, err := server.Start(ctx, localClusterEnabled(*cfg), scaledContext, clusterManager, auditLogWriter, rbac.NewAccessControlHandler())
+	if err != nil {
+		return nil, err
+	}
+...
+}
+```
+### rancher.ListenAndServe 阶段
+启动被管理的所有的 controller。
 
 ## k8s 模板代码生成
 https://github.com/kubernetes/code-generator
@@ -142,9 +166,35 @@ type SettingController interface {
 - schemas 结构定义， scheme 注册到一次。
 
 代码中提到`Handler is the controller implementation for Foo resources`. 一个 handler 里包含多个（controller）的实现代码。
+wrangler context 是用于k8s api 扩展的内容。启动 rancher 时会启动大量资源的 informer。然后在 informer 里添加 handler。
+wrangler 流派有一个特别明显的标志就是它会有有一个: factory.go。factory 的使用方式如下:
+```go
+// Raw k8s client, used to events
+kubeClient := kubernetes.NewForConfigOrDie(cfg)
+// Generated apps controller
+apps := apps.NewFactoryFromConfigOrDie(cfg)
+// Generated sample controller
+sample := samplecontroller.NewFactoryFromConfigOrDie(cfg)
+
+// The typical pattern is to build all your controller/clients then just pass to each handler
+// the bare minimum of what they need.  This will eventually help with writing tests.  So
+// don't pass in something like kubeClient, apps, or sample
+Register(ctx,
+    kubeClient.CoreV1().Events(""),
+    apps.Apps().V1().Deployment(),
+    sample.Samplecontroller().V1alpha1().Foo())
+```
+这里创了一个 sample 的 Factory。那么从 sample 中可以取到 自定义资源的 controller。此外启动器也是由它开始启动。
+```go
+// Start all the controllers
+if err := start.All(ctx, 2, apps, sample); err != nil {
+    logrus.Fatalf("Error starting: %s", err.Error())
+}
+```
 
 ## types
-rancher 中所有自定义资源的定义。依赖 wrangler， norman。
+rancher 中所有自定义资源的定义。里面主要是生成的 controller  和 k8s client。依赖 wrangler，里面主要是 summary 和 rabc 一点点东西用到了。
+依赖norman， 主要是用到里面 Schema, Field 的一些结构体用到了 。
 
 ## steve
 mux 下对应的 handler。

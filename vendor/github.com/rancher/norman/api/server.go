@@ -91,7 +91,9 @@ func NewAPIServer() *Server {
 	return s
 }
 
+// NOTE(JamLee): 解析请求
 func (s *Server) parser(rw http.ResponseWriter, req *http.Request) (*types.APIContext, error) {
+	// NOTE(JamLee): parse 单独是一个包, norman 提供。norman提供的东西倒也全， 从 controller 到 parse。s.URLParser 是 parse.DefaultURLParser
 	ctx, err := parse.Parse(rw, req, s.Schemas, s.URLParser, s.Resolver)
 	ctx.ResponseWriter = s.ResponseWriters[ctx.ResponseFormat]
 	if ctx.ResponseWriter == nil {
@@ -170,6 +172,7 @@ func (s *Server) setupDefaults(schema *types.Schema) {
 	}
 }
 
+// NOTE(JamLee): 这里是 /usr/local/Cellar/go/1.15/libexec/src/net/http/server.go:86 定义的 http.Handle 接口实现
 func (s *Server) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err := recover(); err != nil && err != http.ErrAbortHandler {
@@ -184,6 +187,7 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) handle(rw http.ResponseWriter, req *http.Request) (*types.APIContext, error) {
+	// NOTE(JamLee): 解析请求对象
 	apiRequest, err := s.Parser(rw, req)
 	if err != nil {
 		return apiRequest, err

@@ -157,6 +157,8 @@ type Client struct {
 	cisBenchmarkVersionControllers                     map[string]CisBenchmarkVersionController
 }
 
+// NOTE(JamLee): 与 wrangle 流派返回Factory不同。这里返回的是 Interface，其实是 client 对象。总client可以被启动。可以从总client取子client，例如 nodeInterface（nodeClient）.
+//  client 中是含有 Controller 的。
 func NewForConfig(config rest.Config) (Interface, error) {
 	if config.NegotiatedSerializer == nil {
 		config.NegotiatedSerializer = dynamic.NegotiatedSerializer

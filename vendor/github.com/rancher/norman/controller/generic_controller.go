@@ -85,6 +85,18 @@ type genericController struct {
 	synced              bool
 }
 
+/*
+NOTE(JamLee): genericClient 就是 ObjectClient
+ObjectClient{
+		restClient: restClient,
+		resource:   apiResource,
+		gvk:        gvk,
+		ns:         namespace,
+		Factory:    factory,
+	}
+
+genericClient.ObjectFactory().Object() 是监控的目标资源类型。
+*/
 func NewGenericController(name string, genericClient Backend) GenericController {
 	informer := cache.NewSharedIndexInformer(
 		&cache.ListWatch{
@@ -198,6 +210,7 @@ func (g *genericController) Sync(ctx context.Context) error {
 	return g.sync(ctx)
 }
 
+// NOTE(JamLee): Sync 就是启动 informer 这一端，生产者
 func (g *genericController) sync(ctx context.Context) (retErr error) {
 	if g.synced {
 		return nil
@@ -246,6 +259,7 @@ func (g *genericController) sync(ctx context.Context) (retErr error) {
 	return nil
 }
 
+// NOTE(JamLee): Start 就是启动queue 消费者的这一端
 func (g *genericController) Start(ctx context.Context, threadiness int) error {
 	g.Lock()
 	defer g.Unlock()

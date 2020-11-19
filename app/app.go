@@ -87,7 +87,7 @@ func (r *Rancher) ListenAndServe(ctx context.Context) error {
 	return ctx.Err()
 }
 
-// NOTE(JamLee): New 阶段，安装 crd 到 k8s， 启动 scaledContext
+// NOTE(JamLee): New 阶段，安装 crd 到 k8s， 启动 scaledContext。features 是指 istio，dashboard 等可关闭的特性
 func initFeatures(ctx context.Context, scaledContext *config.ScaledContext, cfg *Config) error {
 	// NOTE(JamLee): wrangle 库中 factory 主要就是一个 clientset（k8s）。但是它有很多方法：比如批量创建 crd
 	factory, err := crd.NewFactoryFromClient(&scaledContext.RESTConfig)
@@ -154,17 +154,13 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 		tunnelServer = df.TunnelServer
 	}
 
-	// NOTE(JamLee):
-	//  wrangler 功能有下:
-	//  1. apply，mgmt，asl， steveControllers 的组合
-	//  \
-	//  steve：是 k8s api 翻译
-	//  这里 wranglerContext 是 k8s api 扩展的内容。
+	// NOTE(JamLee): wrangler 流派的 controller 。负责 cluster，user 两个资源的 k8s api。
 	wranglerContext, err := wrangler.NewContext(ctx, steveserver.RestConfigDefaults(&scaledContext.RESTConfig), tunnelServer)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
+	// NOTE(JamLee): 用户登录授权
 	userManager, err := common.NewUserManager(scaledContext)
 	if err != nil {
 		return nil, nil, nil, err
@@ -173,7 +169,7 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 	scaledContext.UserManager = userManager
 	scaledContext.RunContext = ctx // NOTE(JamLee): 停止的命令
 
-	// NOTE(JamLee): 多集群管理工具
+	// NOTE(JamLee): 多集群管理工具,
 	manager := clustermanager.NewManager(cfg.HTTPSListenPort, scaledContext, wranglerContext.RBAC, wranglerContext.ASL)
 	scaledContext.AccessControl = manager
 	scaledContext.ClientGetter = manager
@@ -183,8 +179,9 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 
 // NOTE(JamLee): Rancher 的启动分为 New 和 Listen 两个阶段。New 阶段是用于组织对象，但是不启动。
 func New(ctx context.Context, clientConfig clientcmd.ClientConfig, cfg *Config) (*Rancher, error) {
-	// QUESTION(JamLee): 什么是 ScaledContext 的概念 ？高可用时每个 managment 拥有一个 scaledContext
-	//  什么是 wranglerContext 的概念？
+	// NOTE(JamLee): 什么是 ScaledContext 的概念 ？高可用时每个 managment 拥有一个 scaledContext。但是只有 master 有 managermentContext。
+	//  里面存放的是 norman 浏览的 controller。
+	//  什么是 wranglerContext 的概念？wranglerContext 是独立的一套wrangler流派的 controller。
 	scaledContext, clusterManager, wranglerContext, err := buildScaledContext(ctx, clientConfig, cfg)
 	if err != nil {
 		return nil, err
@@ -192,6 +189,8 @@ func New(ctx context.Context, clientConfig clientcmd.ClientConfig, cfg *Config) 
 
 	auditLogWriter := audit.NewLogWriter(cfg.AuditLogPath, cfg.AuditLevel, cfg.AuditLogMaxage, cfg.AuditLogMaxbackup, cfg.AuditLogMaxsize)
 
+	// NOTE(JamLee): 启动的 server 中包含了所有http路径与之对应的 handler 挂载。这里的 server 的含义是 route （来自 mux），handler 就是 root route， 还需要一个 http 服务器。
+	//  里面 server.New 对 scaledContext 的 controller 添加 handler。
 	authMiddleware, handler, err := server.Start(ctx, localClusterEnabled(*cfg), scaledContext, clusterManager, auditLogWriter, rbac.NewAccessControlHandler())
 	if err != nil {
 		return nil, err
@@ -211,7 +210,7 @@ func New(ctx context.Context, clientConfig clientcmd.ClientConfig, cfg *Config) 
 	rancher := &Rancher{
 		AccessSetLookup: wranglerContext.ASL,
 		Config:          *cfg,
-		Handler:         handler,
+		Handler:         handler, // NOTE(JamLee): 可供挂载的 router
 		Auth:            authMiddleware,
 		ScaledContext:   scaledContext,
 		WranglerContext: wranglerContext,
@@ -221,14 +220,20 @@ func New(ctx context.Context, clientConfig clientcmd.ClientConfig, cfg *Config) 
 	return rancher, nil
 }
 
+// NOTE(JamLee): ListenAndServe阶段，这里启动了所有的controller
 func (r *Rancher) Start(ctx context.Context) error {
+	// NOTE(JamLee): 目前为止，r.ScaleContext 里的 controller，但是 server.New 方法中注册了 部分handler 上去了
 	if err := r.ScaledContext.Start(ctx); err != nil {
 		return err
 	}
+	// NOTE(JamLee): Added
+	logrus.Traceln("====> ScaledContext Started")
 
 	if err := r.WranglerContext.Start(ctx); err != nil {
 		return err
 	}
+	// NOTE(JamLee): Added
+	logrus.Traceln("====> WranglerContext Started")
 
 	if dm := os.Getenv("CATTLE_DEV_MODE"); dm == "" {
 		if err := jailer.CreateJail("driver-jail"); err != nil {
@@ -240,6 +245,7 @@ func (r *Rancher) Start(ctx context.Context) error {
 		}
 	}
 
+	// NOTE(JamLee): 选举到 leader 则执行里面的函数
 	go leader.RunOrDie(ctx, "", "cattle-controllers", r.ScaledContext.K8sClient, func(ctx context.Context) {
 		if r.ScaledContext.PeerManager != nil {
 			r.ScaledContext.PeerManager.Leader()
@@ -250,11 +256,13 @@ func (r *Rancher) Start(ctx context.Context) error {
 			panic(err)
 		}
 
+		// NOTE(JamLee): pkg/controllers/management, 把 handler 注册到 norman 流派的 controller 上
 		managementController.Register(ctx, management, r.ScaledContext.ClientGetter.(*clustermanager.Manager))
 		if err := management.Start(ctx); err != nil {
 			panic(err)
 		}
 
+		// NOTE(JamLee): 把 handler 注册到 wrangle 流派的 controller 上。WranglerContext.Start(ctx) 又被 start 了一次了
 		managementController.RegisterWrangler(ctx, r.WranglerContext, management, r.ScaledContext.ClientGetter.(*clustermanager.Manager))
 		if err := r.WranglerContext.Start(ctx); err != nil {
 			panic(err)
@@ -278,6 +286,7 @@ func (r *Rancher) Start(ctx context.Context) error {
 		<-ctx.Done()
 	})
 
+	// NOTE(JamLee): 原来 steve 是新的 dashboard 功能。初步分析时不要开启它。
 	if features.Steve.Enabled() {
 		handler, err := newSteve(ctx, r)
 		if err != nil {
@@ -289,6 +298,7 @@ func (r *Rancher) Start(ctx context.Context) error {
 	return nil
 }
 
+// NOTE(JamLee): 在 leader 上继续充实 management 的内容。
 func addData(management *config.ManagementContext, cfg Config) error {
 	adminName, err := addRoles(management)
 	if err != nil {
@@ -339,6 +349,7 @@ func localClusterEnabled(cfg Config) bool {
 	return false
 }
 
+// NOTE(JamLee): 新版的Dashboard
 func newSteve(ctx context.Context, rancher *Rancher) (http.Handler, error) {
 	clusterapiServer := &clusterapi.Server{}
 	cfg := steveserver.Server{
