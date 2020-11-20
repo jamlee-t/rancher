@@ -1,6 +1,7 @@
 ## 思考
 - 当前local集群要执行的内容，例如创建 cluster，user， 修改全局 settings 这种。
 - 受管集群要做的操作例如下发 role 信息，添加节点，部署workload 这种。
+- k8s 是没有用户管理的，rancher 是怎么做到的
 
 ## 启动流程
 启动流程分为两个阶段：app.New 和 rancher.ListenAndServe 阶段

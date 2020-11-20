@@ -56,6 +56,7 @@ type machineDriverCompare struct {
 	annotations map[string]string
 }
 
+// NOTE(JamLee): 系统内部数据初始化
 func addMachineDrivers(management *config.ManagementContext) error {
 	if err := addMachineDriver("pinganyunecs", "https://drivers.rancher.cn/node-driver-pinganyun/0.3.0/docker-machine-driver-pinganyunecs-linux.tgz",
 		"https://drivers.rancher.cn/node-driver-pinganyun/0.3.0/component.js", "f84ccec11c2c1970d76d30150916933efe8ca49fe4c422c8954fc37f71273bb5",

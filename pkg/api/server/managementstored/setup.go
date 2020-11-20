@@ -84,6 +84,7 @@ func Setup(ctx context.Context, apiContext *config.ScaledContext, clusterManager
 
 	factory := &crd.Factory{ClientGetter: apiContext.ClientGetter}
 
+	// NOTE(JamLee): yml 文件可以实时生成，反正只是用一次而已
 	factory.BatchCreateCRDs(ctx, config.ManagementStorageContext, schemas, &managementschema.Version,
 		client.AuthConfigType,
 		client.CatalogType,
@@ -163,6 +164,7 @@ func Setup(ctx context.Context, apiContext *config.ScaledContext, clusterManager
 		return err
 	}
 
+	// NOTE(JamLee): 设置 store，store 是 api handler 的总体抽象
 	Clusters(schemas, apiContext, clusterManager, k8sProxy)
 	ClusterRoleTemplateBinding(schemas, apiContext)
 	Templates(ctx, schemas, apiContext)
@@ -249,14 +251,16 @@ func setupScopedTypes(schemas *types.Schemas) {
 	}
 }
 
+// NOTE(JamLee): 设置 store，store 是 api handler 的总体抽象
 func Clusters(schemas *types.Schemas, managementContext *config.ScaledContext, clusterManager *clustermanager.Manager, k8sProxy http.Handler) {
+	// NOTE(JamLee): schema 是对资源的定义
 	schema := schemas.Schema(&managementschema.Version, client.ClusterType)
 	clusterFormatter := ccluster.NewFormatter(schemas, managementContext)
 	schema.Formatter = clusterFormatter.Formatter
 	schema.CollectionFormatter = clusterFormatter.CollectionFormatter
 	clusterStore := cluster.GetClusterStore(schema, managementContext, clusterManager, k8sProxy)
 	schema.Store = clusterStore
-
+	// NOTE(JamLee): actionHandler 共享资源对象
 	handler := ccluster.ActionHandler{
 		NodepoolGetter:                managementContext.Management,
 		ClusterClient:                 managementContext.Management.Clusters(""),

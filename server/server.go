@@ -96,6 +96,7 @@ func Start(ctx context.Context, localClusterEnabled bool, scaledContext *config.
 	chain := responsewriter.NewMiddlewareChain(responsewriter.Gzip, responsewriter.NoCache, responsewriter.DenyFrameOptions, responsewriter.ContentType, ui.UI)
 	chainGzip := responsewriter.NewMiddlewareChain(responsewriter.Gzip, responsewriter.ContentType)
 
+	// NOTE(JamLee): 链式处理请求
 	root.Handle("/", chain.Handler(managementAPI))
 	root.PathPrefix("/v3-public").Handler(publicAPI)
 	root.Handle("/v3/import/{token}.yaml", http.HandlerFunc(clusterregistrationtokens.ClusterImportHandler))
@@ -111,7 +112,7 @@ func Start(ctx context.Context, localClusterEnabled bool, scaledContext *config.
 	root.PathPrefix("/metrics").Handler(metricsHandler)
 	root.PathPrefix("/v3").Handler(chainGzip.Handler(auditHandler))
 	root.PathPrefix("/hooks").Handler(webhookHandler)
-	root.PathPrefix("/k8s/clusters/").Handler(auditHandler)
+	root.PathPrefix("/k8s/clusters/").Handler(auditHandler) 	// NOTE(JamLee): 前缀路径。只要匹配就会执行，先执行前缀的handler 再执行其他handler。
 	root.PathPrefix("/meta").Handler(auditHandler)
 	root.PathPrefix("/v1-telemetry").Handler(auditHandler)
 	root.PathPrefix("/v1-release/release").Handler(channelserver.NewProxy(ctx))

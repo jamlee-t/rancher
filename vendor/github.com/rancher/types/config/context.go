@@ -56,7 +56,7 @@ type ScaledContext struct {
 	K8sClient         kubernetes.Interface
 	APIExtClient      clientset.Interface
 
-	// NOTE(JamLee): rancher 内部自己定义的 schemas
+	// NOTE(JamLee): rancher 内部自己定义的 schemas，用于 apiHandler 执行。schemas 分两部分完成一部分列清单，一部分往 schema 添加额外操作资源信息
 	Schemas           *types.Schemas
 
 	AccessControl     types.AccessControl
@@ -153,7 +153,7 @@ func NewScaledContext(config rest.Config) (*ScaledContext, error) {
 		return nil, err
 	}
 
-	// NOTE(JamLee): 这个 schemas 和 k8s 的 schemas 不是同一个类型
+	// NOTE(JamLee): 这个 schemas 和 k8s 的 schemas 不是同一个类型。在这里列出了所有schema的清单
 	context.Schemas = types.NewSchemas().
 		AddSchemas(managementSchema.Schemas).
 		AddSchemas(clusterSchema.Schemas).

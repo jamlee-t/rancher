@@ -142,7 +142,7 @@ func buildScaledContext(ctx context.Context, clientConfig clientcmd.ClientConfig
 		return nil, nil, nil, err
 	}
 
-	// NOTE(JamLee): PeerManager 与 rancher 的高可用集群有关系
+	// NOTE(JamLee): PeerManager 与 rancher 的高可用集群互相通信有关系
 	scaledContext.Dialer = dialerFactory
 	scaledContext.PeerManager, err = tunnelserver.NewPeerManager(ctx, scaledContext, dialerFactory.TunnelServer)
 	if err != nil {
@@ -220,7 +220,7 @@ func New(ctx context.Context, clientConfig clientcmd.ClientConfig, cfg *Config) 
 	return rancher, nil
 }
 
-// NOTE(JamLee): ListenAndServe阶段，这里启动了所有的controller
+// NOTE(JamLee): ListenAndServe阶段，这里启动了所有的controller。controller 分为两部分，生产段和消费端
 func (r *Rancher) Start(ctx context.Context) error {
 	// NOTE(JamLee): 目前为止，r.ScaleContext 里的 controller，但是 server.New 方法中注册了 部分handler 上去了
 	if err := r.ScaledContext.Start(ctx); err != nil {
@@ -268,6 +268,7 @@ func (r *Rancher) Start(ctx context.Context) error {
 			panic(err)
 		}
 
+		// NOTE(JamLee): 初始化的资源加进去
 		if err := addData(management, r.Config); err != nil {
 			panic(err)
 		}
@@ -286,8 +287,8 @@ func (r *Rancher) Start(ctx context.Context) error {
 		<-ctx.Done()
 	})
 
-	// NOTE(JamLee): 原来 steve 是新的 dashboard 功能。初步分析时不要开启它。
-	if features.Steve.Enabled() {
+	// NOTE(JamLee): steve 是新的 dashboard 功能。初步分析时不要开启它。我手动关闭它
+	if false && features.Steve.Enabled() {
 		handler, err := newSteve(ctx, r)
 		if err != nil {
 			return err
@@ -331,15 +332,16 @@ func addData(management *config.ManagementContext, cfg Config) error {
 		return err
 	}
 
-	if err := addKontainerDrivers(management); err != nil {
-		return err
-	}
+	// if err := addKontainerDrivers(management); err != nil {
+	//	return err
+	// }
 
 	if err := addCattleGlobalNamespaces(management); err != nil {
 		return err
 	}
 
-	return addMachineDrivers(management)
+	// addMachineDrivers(management)
+	return err
 }
 
 func localClusterEnabled(cfg Config) bool {

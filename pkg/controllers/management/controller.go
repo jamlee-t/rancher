@@ -17,11 +17,8 @@ import (
 	"github.com/rancher/rancher/pkg/controllers/management/clusterstatus"
 	"github.com/rancher/rancher/pkg/controllers/management/clustertemplate"
 	"github.com/rancher/rancher/pkg/controllers/management/compose"
-	"github.com/rancher/rancher/pkg/controllers/management/drivers/kontainerdriver"
-	"github.com/rancher/rancher/pkg/controllers/management/drivers/nodedriver"
 	"github.com/rancher/rancher/pkg/controllers/management/etcdbackup"
 	"github.com/rancher/rancher/pkg/controllers/management/globaldns"
-	"github.com/rancher/rancher/pkg/controllers/management/kontainerdrivermetadata"
 	"github.com/rancher/rancher/pkg/controllers/management/multiclusterapp"
 	"github.com/rancher/rancher/pkg/controllers/management/node"
 	"github.com/rancher/rancher/pkg/controllers/management/nodepool"
@@ -49,9 +46,10 @@ func Register(ctx context.Context, management *config.ManagementContext, manager
 	clusterstats.Register(ctx, management, manager)
 	clusterstatus.Register(ctx, management)
 	compose.Register(ctx, management, manager)
-	kontainerdriver.Register(ctx, management)
-	kontainerdrivermetadata.Register(ctx, management)
-	nodedriver.Register(ctx, management)
+	// NOTE(JamLee): 忽略 nodedriver
+	//kontainerdriver.Register(ctx, management)
+	//kontainerdrivermetadata.Register(ctx, management)
+	//nodedriver.Register(ctx, management)
 	nodepool.Register(ctx, management)
 	cloudcredential.Register(ctx, management)
 	node.Register(ctx, management)

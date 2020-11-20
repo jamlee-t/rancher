@@ -37,7 +37,7 @@ func (w *Context) Start(ctx context.Context) error {
 }
 
 func NewContext(ctx context.Context, restConfig *rest.Config, tunnelServer *remotedialer.Server) (*Context, error) {
-	// NOTE(JamLee): 含有 wrangler-api 的 apiextensions 和 apiregistration 的 controller。主要是 k8s 扩展api的功能
+	// NOTE(JamLee): 含有 wrangler-api 的 apiextensions 和 apiregistration 的 controller，主要是 k8s 扩展api的功能。内部四个启动器，监控 wrangle-api 四个核心的内置资源。
 	steveControllers, err := server.NewController(restConfig)
 	if err != nil {
 		return nil, err
@@ -50,6 +50,9 @@ func NewContext(ctx context.Context, restConfig *rest.Config, tunnelServer *remo
 	}
 
 	// NOTE(JamLee): 这里返回是 Factory， 意思是 Controller 的 Factory。可以从其中获取 wrangler 流派的 controller 。
+	//  v3.Cluster{},
+	//  v3.User{},
+	//  额外注册了 Cluster 和 User 两个资源
 	mgmt, err := management.NewFactoryFromConfig(restConfig)
 	if err != nil {
 		return nil, err

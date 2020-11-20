@@ -18,7 +18,7 @@ var (
 		Group:   "management.cattle.io",
 		Path:    "/v3",
 	}
-
+	// 提供给 context 用于注册 api
 	Schemas = factory.Schemas(&Version).
 		Init(nativeNodeTypes).
 		Init(nodeTypes).
